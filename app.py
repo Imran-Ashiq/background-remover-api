@@ -1,18 +1,14 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
 import base64
 from io import BytesIO
 from rembg import remove
 from PIL import Image
-import io
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
 
 @app.route('/remove-background', methods=['POST'])
 def remove_background():
     try:
-        # Get the Base64 image from the request
         data = request.get_json()
         print("Request Data:", data)
         image_data = data.get('image')
@@ -26,7 +22,6 @@ def remove_background():
         # Decode the Base64 image
         try:
             img_bytes = base64.b64decode(image_data)
-            print("Decoded image bytes length:", len(img_bytes))
         except Exception:
             return jsonify({"error": "Failed to decode Base64 image"}), 400
 
@@ -46,10 +41,13 @@ def remove_background():
         # Convert the processed image to Base64
         processed_image = base64.b64encode(output).decode('utf-8')
 
-        return jsonify({
+        # Return the processed image in JSON format with correct headers
+        response = jsonify({
             "message": "Background removed successfully",
             "processed_image": processed_image
         })
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
